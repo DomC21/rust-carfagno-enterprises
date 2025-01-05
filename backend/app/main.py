@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from .models import StockAnalysisRequest, StockAnalysisResponse
 from .services.news_service import get_news_articles
@@ -11,10 +11,15 @@ load_dotenv()
 
 app = FastAPI(title="Rust: A Tool by Carfagno Enterprises")
 
+@app.get("/health")
+async def health_check():
+    return Response(status_code=200)
+
 # Configure CORS
+origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins in development
+    allow_origins=origins,  # Configured via environment variable
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
