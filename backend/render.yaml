@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: rust-carfagno-enterprises
+    env: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd backend && PYTHONPATH=$PYTHONPATH:. uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: NEWS_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: PORT
+        value: 8080
+      - key: CORS_ORIGINS
+        value: https://rust-carfagno-enterprises.onrender.com
+      - key: PYTHONPATH
+        value: .
+    healthCheckPath: /health
+    autoDeploy: true
