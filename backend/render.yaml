@@ -10,9 +10,9 @@ services:
         sync: false
       - key: PORT
         value: 8080
-    healthCheckPath: /health
-    autoDeploy: true
       - key: CORS_ORIGINS
         value: https://rust-carfagno-enterprises.onrender.com
-    autoDeploy: true
+      - key: PYTHONPATH
+        value: /app
     healthCheckPath: /health
+    autoDeploy: true
