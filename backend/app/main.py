@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from .models import StockAnalysisRequest, StockAnalysisResponse
-from app.services.news_service import get_news_articles
+from .services.news_service import get_news_articles
 from .services.analysis_service import analyze_articles
 from .services.report_service import generate_report
 import os
