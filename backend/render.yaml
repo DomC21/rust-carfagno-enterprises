@@ -2,9 +2,8 @@ services:
   - type: web
     name: rust-carfagno-enterprises
     env: python
-    rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: cd backend && PYTHONPATH=$PYTHONPATH:. uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: PYTHONPATH=$PYTHONPATH:. uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: NEWS_API_KEY
         sync: false
