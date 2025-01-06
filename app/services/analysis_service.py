@@ -13,19 +13,19 @@ async def analyze_articles(articles: List[NewsArticle]) -> List[ArticleAnalysis]
     for article in articles:
         # Prepare prompt for ChatGPT
         prompt = f"""
-        Analyze this financial news article:
+        Analyze this financial news article and return a JSON response in the following format:
+        {{
+            "summary": "Brief summary of the article",
+            "sentiment": "positive/neutral/negative",
+            "sentiment_score": 0.0,
+            "key_takeaways": ["point 1", "point 2", "point 3"],
+            "significant_quotes": ["quote 1", "quote 2"]
+        }}
+
+        Article to analyze:
         Title: {article.title}
         Description: {article.description}
         Source: {article.source}
-        
-        Please provide:
-        1. A brief summary
-        2. Sentiment (positive/neutral/negative)
-        3. Sentiment score (-1.0 to 1.0)
-        4. Key takeaways (3 points)
-        5. Significant quotes
-        
-        Format as JSON.
         """
         
         try: 
@@ -40,7 +40,10 @@ async def analyze_articles(articles: List[NewsArticle]) -> List[ArticleAnalysis]
             
             # Parse the response
             analysis_text = response.choices[0].message.content
-            analysis_data = eval(analysis_text)  # Convert string to dict
+            import json
+            # Clean the response text to ensure it contains only the JSON object
+            json_str = analysis_text.strip().replace("```json", "").replace("```", "")
+            analysis_data = json.loads(json_str)  # Safely parse JSON
             
             analyses.append(
                 ArticleAnalysis(
