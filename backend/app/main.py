@@ -20,6 +20,7 @@ async def health_check():
 # Configure CORS
 origins = [
     "http://localhost:5173",
+    "http://localhost:5174",
     "https://stock-news-app-miq8bqnu.devinapps.com",
     "https://rust-carfagno-enterprises-3.onrender.com"
 ]

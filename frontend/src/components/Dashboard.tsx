@@ -1,5 +1,6 @@
 import React from 'react';
 import { StockAnalysisResponse } from '../types';
+import { Button } from './ui/button';
 
 interface DashboardProps {
   data: StockAnalysisResponse;
@@ -18,13 +19,13 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="analysis-results">
       <div className="bg-white p-6 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold mb-4">Analysis Results for {data.ticker}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <h3 className="text-lg font-semibold mb-2">Overall Sentiment</h3>
-            <p className={`text-xl font-bold ${getSentimentColor(data.overall_sentiment)}`}>
+            <p className={`text-xl font-bold ${getSentimentColor(data.overall_sentiment)}`} data-testid="sentiment-score">
               {data.overall_sentiment.toUpperCase()} ({data.overall_sentiment_score.toFixed(2)})
             </p>
           </div>
@@ -44,7 +45,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
         <h3 className="text-xl font-bold mb-4">News Analysis</h3>
         <div className="space-y-6">
           {data.articles.map((article, index) => (
-            <div key={index} className="border-b pb-4 last:border-b-0">
+            <div key={index} className="border-b pb-4 last:border-b-0" data-testid="article-summary">
               <h4 className="font-semibold mb-2">{article.title}</h4>
               <p className="text-sm text-gray-600 mb-2">
                 Source: {article.source} | Published: {new Date(article.published_at).toLocaleDateString()}
@@ -58,6 +59,30 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="flex gap-4 mt-6">
+        <Button
+          onClick={() => window.open('/api/export/pdf', '_blank')}
+          data-testid="export-pdf"
+          variant="outline"
+        >
+          Export PDF
+        </Button>
+        <Button
+          onClick={() => window.open('/api/export/csv', '_blank')}
+          data-testid="export-csv"
+          variant="outline"
+        >
+          Export CSV
+        </Button>
+        <Button
+          onClick={() => window.location.reload()}
+          data-testid="clear-button"
+          variant="outline"
+        >
+          Clear Results
+        </Button>
       </div>
     </div>
   );
