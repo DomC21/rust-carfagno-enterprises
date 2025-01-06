@@ -64,6 +64,15 @@ async def analyze_articles(articles: List[NewsArticle]) -> List[ArticleAnalysis]
             )
         except Exception as e:
             print(f"Error analyzing article: {str(e)}")
-            continue
+            # Provide default analysis when ChatGPT analysis fails
+            analyses.append(
+                ArticleAnalysis(
+                    summary="Unable to generate summary at this time.",
+                    sentiment="neutral",
+                    sentiment_score=0.0,
+                    key_takeaways=["Analysis unavailable"],
+                    significant_quotes=["No quotes available"]
+                )
+            )
     
     return analyses
