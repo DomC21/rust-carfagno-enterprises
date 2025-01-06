@@ -1,5 +1,6 @@
 import React from 'react';
 import { StockAnalysisResponse } from '../types';
+import { exportPDF, exportCSV } from '../api';
 
 interface DashboardProps {
   data: StockAnalysisResponse;
@@ -17,10 +18,58 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
     }
   };
 
+  const handleExportPDF = async () => {
+    try {
+      const blob = await exportPDF(data);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${data.ticker}_analysis.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Failed to export PDF:', error);
+    }
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const blob = await exportCSV(data);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${data.ticker}_analysis.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Failed to export CSV:', error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-4">Analysis Results for {data.ticker}</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Analysis Results for {data.ticker}</h2>
+          <div className="space-x-4">
+            <button
+              onClick={handleExportPDF}
+              className="bg-gold hover:bg-yellow-600 text-black px-4 py-2 rounded transition-colors"
+            >
+              Export PDF
+            </button>
+            <button
+              onClick={handleExportCSV}
+              className="bg-gold hover:bg-yellow-600 text-black px-4 py-2 rounded transition-colors"
+            >
+              Export CSV
+            </button>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <h3 className="text-lg font-semibold mb-2">Overall Sentiment</h3>

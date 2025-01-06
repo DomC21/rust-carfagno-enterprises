@@ -18,3 +18,35 @@ export async function analyzeStock(request: StockAnalysisRequest): Promise<Stock
 
   return response.json();
 }
+
+export async function exportPDF(analysis: StockAnalysisResponse): Promise<Blob> {
+  const response = await fetch(`${API_URL}/export/pdf`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(analysis),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to generate PDF');
+  }
+
+  return response.blob();
+}
+
+export async function exportCSV(analysis: StockAnalysisResponse): Promise<Blob> {
+  const response = await fetch(`${API_URL}/export/csv`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(analysis),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to generate CSV');
+  }
+
+  return response.blob();
+}
