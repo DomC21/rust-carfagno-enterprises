@@ -1,9 +1,9 @@
 import os
 from typing import List
-import openai
+from openai import AsyncOpenAI
 from ..models import NewsArticle, ArticleAnalysis
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 async def analyze_articles(articles: List[NewsArticle]) -> List[ArticleAnalysis]:
     """Analyze news articles using ChatGPT."""
@@ -25,14 +25,21 @@ async def analyze_articles(articles: List[NewsArticle]) -> List[ArticleAnalysis]
         4. Key takeaways (3 points)
         5. Significant quotes
         
-        Format as JSON.
+        Format the response as JSON with the following structure:
+        {
+            "summary": "Brief summary here",
+            "sentiment": "positive/neutral/negative",
+            "sentiment_score": number between -1.0 and 1.0,
+            "key_takeaways": ["point 1", "point 2", "point 3"],
+            "significant_quotes": ["quote 1", "quote 2"]
+        }
         """
         
         try: 
-            response = await openai.ChatCompletion.acreate(
+            response = await client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are a financial analyst expert."},
+                    {"role": "system", "content": "You are a financial analyst expert. Always respond with valid JSON."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3
