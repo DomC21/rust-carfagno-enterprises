@@ -89,6 +89,7 @@ async def analyze_stock(request: StockAnalysisRequest):
                 print(f"Article data that caused error: {article}")
                 continue
         
+        
         if not articles:
             raise HTTPException(status_code=404, detail="No valid articles found for processing")
             
@@ -99,5 +100,37 @@ async def analyze_stock(request: StockAnalysisRequest):
         report = await generate_report(request.ticker, articles, analysis_results)
         
         return report
+
+@app.post("/export/pdf")
+async def export_pdf(analysis: StockAnalysisResponse):
+    """Export analysis report as PDF."""
+    try:
+        from .services.export import generate_pdf_report
+        pdf_buffer = generate_pdf_report(analysis)
+        return Response(
+            content=pdf_buffer.getvalue(),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{analysis.ticker}_analysis.pdf"'
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
+
+@app.post("/export/csv")
+async def export_csv(analysis: StockAnalysisResponse):
+    """Export analysis report as CSV."""
+    try:
+        from .services.export import generate_csv_report
+        csv_buffer = generate_csv_report(analysis)
+        return Response(
+            content=csv_buffer.getvalue(),
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f'attachment; filename="{analysis.ticker}_analysis.csv"'
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating CSV: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
