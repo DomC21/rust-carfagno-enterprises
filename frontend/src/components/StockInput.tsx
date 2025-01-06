@@ -21,6 +21,7 @@ const StockInput: React.FC<StockInputProps> = ({ onSubmit, isLoading }) => {
       <div className="flex-1">
         <input
           type="text"
+          data-testid="stock-input"
           value={ticker}
           onChange={(e) => setTicker(e.target.value)}
           placeholder="Enter stock ticker (e.g., AAPL)"
@@ -28,7 +29,7 @@ const StockInput: React.FC<StockInputProps> = ({ onSubmit, isLoading }) => {
           disabled={isLoading}
         />
       </div>
-      <Button type="submit" disabled={isLoading || !ticker.trim()}>
+      <Button type="submit" data-testid="analyze-button" disabled={isLoading || !ticker.trim()}>
         {isLoading ? 'Analyzing...' : 'Analyze'}
       </Button>
     </form>
