@@ -39,8 +39,19 @@ async def analyze_articles(articles: List[NewsArticle]) -> List[ArticleAnalysis]
             )
             
             # Parse the response
+            import json
             analysis_text = response.choices[0].message.content
-            analysis_data = eval(analysis_text)  # Convert string to dict
+            try:
+                analysis_data = json.loads(analysis_text)
+            except json.JSONDecodeError:
+                print(f"Error parsing ChatGPT response: {analysis_text}")
+                continue
+                
+            # Ensure all required fields are present
+            required_fields = ["summary", "sentiment", "sentiment_score", "key_takeaways", "significant_quotes"]
+            if not all(field in analysis_data for field in required_fields):
+                print(f"Missing required fields in analysis data: {analysis_data}")
+                continue
             
             analyses.append(
                 ArticleAnalysis(
