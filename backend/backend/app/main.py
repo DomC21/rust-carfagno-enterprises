@@ -17,7 +17,7 @@ async def health_check():
     return Response(status_code=200)
 
 # Configure CORS
-origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,https://stock-news-app-miq8bqnu.devinapps.com").split(",")
+origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,  # Configured via environment variable
@@ -36,57 +36,29 @@ async def analyze_stock(request: StockAnalysisRequest):
         # Fetch news articles
         raw_articles = await get_news_articles(request.ticker)
         
-        # Debug logging
-        print(f"Raw articles received: {len(raw_articles) if raw_articles else 0}")
-        if raw_articles and len(raw_articles) > 0:
-            print(f"First article structure: {raw_articles[0]}")
-        
         if not raw_articles:
             raise HTTPException(status_code=404, detail="No news articles found for the given ticker")
             
         # Convert raw articles to NewsArticle objects
         from datetime import datetime
         articles = []
-        for idx, article in enumerate(raw_articles):
+        for article in raw_articles:
             try:
-                # Debug logging
-                print(f"Processing article {idx}...")
-                print(f"Article data: {article}")
-                
-                # Extract data with fallbacks
-                title = article.get("title")
-                if not title:
-                    print(f"Warning: No title found for article {idx}")
-                    continue
-                    
-                description = article.get("description", "No description available")
-                source_name = article.get("source", {}).get("name", "Unknown Source")
-                url = article.get("url", "")
-                published_at_str = article.get("publishedAt")
-                
-                if not published_at_str:
-                    print(f"Warning: No publishedAt found for article {idx}")
-                    published_at = datetime.now()
-                else:
-                    try:
-                        published_at = datetime.strptime(published_at_str, "%Y-%m-%dT%H:%M:%SZ")
-                    except ValueError as e:
-                        print(f"Warning: Invalid date format for article {idx}: {e}")
-                        published_at = datetime.now()
-                
+                published_at = datetime.strptime(
+                    article.get("publishedAt", ""), 
+                    "%Y-%m-%dT%H:%M:%SZ"
+                )
                 articles.append(
                     NewsArticle(
-                        title=title,
-                        description=description,
-                        source=source_name,
-                        url=url,
+                        title=article.get("title", "No title"),
+                        description=article.get("description", "No description"),
+                        source=article.get("source", {}).get("name", "Unknown"),
+                        url=article.get("url", ""),
                         published_at=published_at
                     )
                 )
-                print(f"Successfully processed article {idx}")
-            except Exception as e:
-                print(f"Error processing article {idx}: {str(e)}")
-                print(f"Article data that caused error: {article}")
+            except (ValueError, TypeError) as e:
+                print(f"Error processing article: {str(e)}")
                 continue
         
         if not articles:

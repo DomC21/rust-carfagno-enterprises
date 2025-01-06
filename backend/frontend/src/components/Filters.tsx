@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { Calendar } from './ui/calendar';
-// Date formatting will be added in a future update
+import { format } from 'date-fns';
 
 interface FiltersProps {
   onDateChange: (startDate: Date | undefined, endDate: Date | undefined) => void;
