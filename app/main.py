@@ -1,9 +1,10 @@
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
-from .models import StockAnalysisRequest, StockAnalysisResponse
-from .services.news_service import get_news_articles
-from .services.analysis_service import analyze_articles
-from .services.report_service import generate_report
+from datetime import datetime
+from app.models import StockAnalysisRequest, StockAnalysisResponse, NewsArticle
+from app.services.news_service import get_news_articles
+from app.services.analysis_service import analyze_articles
+from app.services.report_service import generate_report
 import os
 from dotenv import load_dotenv
 
@@ -33,11 +34,36 @@ async def root():
 async def analyze_stock(request: StockAnalysisRequest):
     try:
         # Fetch news articles
-        articles = await get_news_articles(request.ticker)
+        raw_articles = await get_news_articles(request.ticker)
+        
+        if not raw_articles:
+            raise HTTPException(status_code=404, detail="No news articles found for the given ticker")
+            
+        # Convert raw articles to NewsArticle objects
+        from datetime import datetime
+        articles = []
+        for article in raw_articles:
+            try:
+                published_at = datetime.strptime(
+                    article.get("publishedAt", ""), 
+                    "%Y-%m-%dT%H:%M:%SZ"
+                )
+                articles.append(
+                    NewsArticle(
+                        title=article.get("title", "No title"),
+                        description=article.get("description", "No description"),
+                        source=article.get("source", {}).get("name", "Unknown"),
+                        url=article.get("url", ""),
+                        published_at=published_at
+                    )
+                )
+            except (ValueError, TypeError) as e:
+                print(f"Error processing article: {str(e)}")
+                continue
         
         if not articles:
-            raise HTTPException(status_code=404, detail="No news articles found for the given ticker")
-        
+            raise HTTPException(status_code=404, detail="No valid articles found for processing")
+            
         # Analyze articles using ChatGPT
         analysis_results = await analyze_articles(articles)
         
