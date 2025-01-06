@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "rust-carfagno-enterprises"
+version = "0.1.0"
+description = "Stock Analysis Tool using News API and ChatGPT"
+authors = ["Devin <devin@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.109.0"
+uvicorn = "^0.25.0"
+python-dotenv = "^1.0.0"
+httpx = "^0.26.0"
+openai = "^1.6.1"
+pydantic = "^2.5.3"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
