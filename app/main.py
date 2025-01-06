@@ -17,7 +17,7 @@ async def health_check():
     return Response(status_code=200)
 
 # Configure CORS
-origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,https://stock-news-app-miq8bqnu.devinapps.com").split(",")
+origins = ["http://localhost:5173", "https://stock-news-app-miq8bqnu.devinapps.com"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,  # Configured via environment variable
