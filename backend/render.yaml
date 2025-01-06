@@ -12,8 +12,8 @@ services:
       - key: PORT
         value: 8080
       - key: CORS_ORIGINS
-        value: "https://rust-carfagno-enterprises.onrender.com"
+        value: https://stock-news-app-miq8bqnu.devinapps.com
       - key: PYTHONPATH
-        value: "."
+        value: .
     healthCheckPath: /health
     autoDeploy: true
