@@ -30,7 +30,7 @@ app.add_middleware(
 async def root():
     return {"message": "Welcome to Rust: A Tool by Carfagno Enterprises"}
 
-@app.post("/analyze", response_model=StockAnalysisResponse)
+@app.post("/api/analyze", response_model=StockAnalysisResponse)
 async def analyze_stock(request: StockAnalysisRequest):
     try:
         # Fetch news articles

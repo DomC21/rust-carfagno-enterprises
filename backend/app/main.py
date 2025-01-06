@@ -12,12 +12,17 @@ load_dotenv()
 
 app = FastAPI(title="Rust: A Tool by Carfagno Enterprises")
 
-@app.get("/health")
+@app.get("/api/health")
 async def health_check():
-    return Response(status_code=200)
+    """Health check endpoint to verify API is running."""
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
 # Configure CORS
-origins = ["http://localhost:5173", "https://stock-news-app-miq8bqnu.devinapps.com"]
+origins = [
+    "http://localhost:5173",
+    "https://stock-news-app-miq8bqnu.devinapps.com",
+    "https://rust-carfagno-enterprises-3.onrender.com"
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,  # Configured via environment variable
@@ -30,7 +35,7 @@ app.add_middleware(
 async def root():
     return {"message": "Welcome to Rust: A Tool by Carfagno Enterprises"}
 
-@app.post("/analyze", response_model=StockAnalysisResponse)
+@app.post("/api/analyze", response_model=StockAnalysisResponse)
 async def analyze_stock(request: StockAnalysisRequest):
     try:
         # Fetch news articles
