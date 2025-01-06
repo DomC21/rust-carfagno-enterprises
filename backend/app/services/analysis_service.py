@@ -1,12 +1,12 @@
 import os
 from typing import List
-import openai
+from openai import AsyncOpenAI
 from ..models import NewsArticle, ArticleAnalysis
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 async def analyze_articles(articles: List[NewsArticle]) -> List[ArticleAnalysis]:
-    """Analyze news articles using ChatGPT."""
+    """Analyze news articles using ChatGPT API."""
     
     analyses = []
     
@@ -29,10 +29,10 @@ async def analyze_articles(articles: List[NewsArticle]) -> List[ArticleAnalysis]
         """
         
         try: 
-            response = await openai.ChatCompletion.acreate(
+            response = await client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are a financial analyst expert."},
+                    {"role": "system", "content": "You are an expert financial analyst providing market insights."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3

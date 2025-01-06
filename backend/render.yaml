@@ -15,5 +15,5 @@ services:
         value: https://stock-news-app-miq8bqnu.devinapps.com
       - key: PYTHONPATH
         value: .
-    healthCheckPath: /health
+    healthCheckPath: /api/health
     autoDeploy: true
