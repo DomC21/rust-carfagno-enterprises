@@ -25,7 +25,7 @@ const StockInput: React.FC<StockInputProps> = ({ onSubmit, isLoading }) => {
           value={ticker}
           onChange={(e) => setTicker(e.target.value)}
           placeholder="Enter stock ticker (e.g., AAPL)"
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white text-black placeholder-gray-500"
           disabled={isLoading}
         />
       </div>
