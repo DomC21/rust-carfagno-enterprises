@@ -52,7 +52,8 @@ async def get_news_articles(ticker: str, days: int = 7) -> List[Dict[str, Any]]:
                 # Sort by published date
                 articles.sort(key=lambda x: x.get("publishedAt", ""), reverse=True)
                 
-                return articles[:10]  # Return only the 10 most recent articles
+                print(f"Found {len(articles)} articles, returning first 3")
+                return articles[:3]  # Return only 3 articles for testing
                 
     except asyncio.TimeoutError:
         raise Exception("Timeout while fetching news articles")

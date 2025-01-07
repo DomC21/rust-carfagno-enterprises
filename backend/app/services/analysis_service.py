@@ -14,7 +14,9 @@ async def analyze_articles(articles: List[NewsArticle]) -> List[ArticleAnalysis]
     
     analyses = []
     
-    for article in articles:
+    print(f"Starting analysis of {len(articles)} articles")
+    for idx, article in enumerate(articles):
+        print(f"Analyzing article {idx + 1}/{len(articles)}")
         # Prepare prompt for ChatGPT
         prompt = f"""
         Analyze this financial news article and return a JSON response in the following format:
