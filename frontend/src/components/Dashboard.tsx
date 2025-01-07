@@ -10,11 +10,11 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment.toLowerCase()) {
       case 'positive':
-        return 'text-green-600';
+        return 'text-green-600 transition-all duration-300 hover:text-green-400 hover:shadow-lg hover:shadow-green-200/50';
       case 'negative':
-        return 'text-red-600';
+        return 'text-red-600 transition-all duration-300 hover:text-red-400 hover:shadow-lg hover:shadow-red-200/50';
       default:
-        return 'text-yellow-600';
+        return 'text-yellow-600 transition-all duration-300 hover:text-yellow-400 hover:shadow-lg hover:shadow-yellow-200/50';
     }
   };
 
@@ -48,7 +48,14 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
             <div key={index} className="border-b pb-4 last:border-b-0" data-testid="article-summary">
               <h4 className="font-semibold mb-2">{article.title}</h4>
               <p className="text-sm text-gray-600 mb-2">
-                Source: {article.source} | Published: {new Date(article.published_at).toLocaleDateString()}
+                Source: {article.source} | Published: {new Date(article.published_at).toLocaleString(undefined, {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  timeZoneName: 'short'
+                })}
               </p>
               <div className="pl-4 border-l-4 border-blue-500">
                 <p className="text-gray-700 mb-2">{data.analyses[index].summary}</p>
