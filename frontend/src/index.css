@@ -3,6 +3,30 @@
 @tailwind utilities;
 
 :root {
+  --gold: #FFD700;
+  --black: #000000;
+  --dark-gray: #1a1a1a;
+  --light-gray: #e5e5e5;
+}
+
+body {
+  background-color: var(--black);
+  color: var(--light-gray);
+}
+
+.brand-gold {
+  color: var(--gold);
+}
+
+.bg-brand-dark {
+  background-color: var(--dark-gray);
+}
+
+.border-brand-gold {
+  border-color: var(--gold);
+}
+
+:root {
   --foreground-rgb: 255, 255, 255;
   --background-rgb: 0, 0, 0;
 }
