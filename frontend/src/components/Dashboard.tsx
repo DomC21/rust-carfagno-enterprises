@@ -19,7 +19,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data }) => {
   };
 
   return (
-    <div className="space-y-6" data-testid="analysis-results">
+    <div className="space-y-6" data-testid={`analysis-results-${data.ticker}`}>
       <div className="bg-white p-6 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold mb-4">Analysis Results for {data.ticker}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
