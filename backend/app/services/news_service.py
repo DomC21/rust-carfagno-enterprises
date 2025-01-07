@@ -24,21 +24,38 @@ WHITELISTED_SOURCES = {
     "wall street journal": ["wall street journal", "wsj", "wsj.com"]
 }
 
+def extract_domain(url: str) -> str:
+    """Extract domain from URL, handling common formats."""
+    if not url:
+        return ""
+    # Remove protocol and www
+    domain = url.lower().replace("https://", "").replace("http://", "").replace("www.", "")
+    # Get the domain part
+    return domain.split("/")[0] if "/" in domain else domain
+
 def is_whitelisted_source(source: Dict[str, Any]) -> bool:
-    """Check if the article source is in the whitelist."""
+    """Check if the article source is in the whitelist using strict matching."""
     if not source:
+        logging.warning("Empty source object received")
         return False
     
-    source_name = source.get("name", "").lower()
-    source_domain = source.get("url", "").lower()
+    source_name = source.get("name", "").lower().strip()
+    source_url = source.get("url", "").lower().strip()
+    source_domain = extract_domain(source_url)
     
     for whitelist_variants in WHITELISTED_SOURCES.values():
         for variant in whitelist_variants:
-            if variant in source_name or variant in source_domain:
-                logging.info(f"Matched source: {source_name} ({source_domain}) with variant: {variant}")
+            variant_lower = variant.lower().strip()
+            variant_domain = extract_domain(variant_lower)
+            
+            # Exact match for source name or domain
+            if (source_name == variant_lower or
+                source_domain == variant_domain or
+                variant_domain == source_domain):
+                logging.info(f"Matched whitelisted source: {source.get('name')} ({source_url})")
                 return True
     
-    logging.info(f"Rejected source: {source_name} ({source_domain})")
+    logging.warning(f"Rejected non-whitelisted source: {source.get('name')} ({source_url})")
     return False
 
 def setup_logging():
