@@ -36,6 +36,14 @@ app.add_middleware(
 async def root():
     return {"message": "Welcome to Rust: A Tool by Carfagno Enterprises"}
 
+@app.get("/api/check-env")
+async def check_env():
+    """Check if required environment variables are set."""
+    return {
+        "NEWS_API_KEY": str(bool(os.getenv("NEWS_API_KEY"))),
+        "OPENAI_API_KEY": str(bool(os.getenv("OPENAI_API_KEY")))
+    }
+
 @app.post("/api/analyze", response_model=StockAnalysisResponse)
 async def analyze_stock(request: StockAnalysisRequest):
     try:
