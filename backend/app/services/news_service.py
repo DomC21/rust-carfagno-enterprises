@@ -8,6 +8,9 @@ import logging
 
 load_dotenv()
 
+# Set up logging
+setup_logging()
+
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 NEWS_API_BASE_URL = "https://newsapi.org/v2/everything"
 
@@ -37,6 +40,13 @@ def is_whitelisted_source(source: Dict[str, Any]) -> bool:
     
     logging.info(f"Rejected source: {source_name} ({source_domain})")
     return False
+
+def setup_logging():
+    """Configure logging for the news service."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
 
 async def get_news_articles(ticker: str, days: int = 30) -> List[Dict[str, Any]]:
     """
@@ -80,10 +90,22 @@ async def get_news_articles(ticker: str, days: int = 30) -> List[Dict[str, Any]]
                 
                 # Filter articles by whitelisted sources and date range
                 articles = []
+                total_articles = len(data["articles"])
+                logging.info(f"Processing {total_articles} articles for ticker {ticker}")
+                
                 for article in data["articles"]:
                     published_at = datetime.fromisoformat(article["publishedAt"].replace("Z", "+00:00"))
-                    if start_date <= published_at <= end_date and is_whitelisted_source(article["source"]):
-                        articles.append(article)
+                    source = article["source"]
+                    logging.info(f"Checking source: {source.get('name', 'Unknown')} ({source.get('url', 'No URL')})")
+                    
+                    if start_date <= published_at <= end_date:
+                        if is_whitelisted_source(source):
+                            articles.append(article)
+                            logging.info(f"Added article from {source.get('name', 'Unknown')}")
+                        else:
+                            logging.info(f"Skipped article from non-whitelisted source: {source.get('name', 'Unknown')}")
+                    else:
+                        logging.info(f"Skipped article due to date range: {published_at}")
                 
                 # Sort by published date
                 articles.sort(key=lambda x: x["publishedAt"], reverse=True)
