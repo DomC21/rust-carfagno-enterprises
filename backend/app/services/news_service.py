@@ -106,17 +106,21 @@ async def get_news_articles(ticker: str, days: int = 30) -> List[Dict[str, Any]]
     end_date = datetime.now(timezone.utc)
     start_date = (end_date - timedelta(days=days)).replace(tzinfo=timezone.utc)
     
-    logging.info(f"Date range: {start_date.isoformat()} to {end_date.isoformat()}")
+    # Format dates in ISO 8601 format for News API
+    start_date_str = start_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+    end_date_str = end_date.strftime("%Y-%m-%dT%H:%M:%SZ")
     
-    # Ensure dates are in UTC format for News API
+    logging.info(f"Date range: {start_date_str} to {end_date_str}")
+    
+    # Use formatted dates for News API request
     params = {
         "q": ticker,
+        "from": start_date_str,  # ISO 8601 format for precise filtering
+        "to": end_date_str,
         "apiKey": NEWS_API_KEY,
         "language": "en",
         "sortBy": "publishedAt",
-        "pageSize": 100,  # Maximum allowed by News API
-        "from": start_date.strftime("%Y-%m-%d"),
-        "to": end_date.strftime("%Y-%m-%d")
+        "pageSize": 100  # Maximum allowed by News API
     }
     
     try:
