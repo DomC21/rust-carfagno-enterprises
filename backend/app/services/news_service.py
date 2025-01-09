@@ -61,19 +61,29 @@ def is_whitelisted_source(source: Dict[str, Any]) -> bool:
                 logging.info(f"Matched whitelisted source name: {source_name} ({source_type})")
                 return True
             
-            # Domain match
-            variant_domain = extract_domain(variant_lower)
-            if variant_domain and (source_domain == variant_domain):
-                logging.info(f"Matched whitelisted domain: {source_domain} ({source_type})")
-                return True
+            # Domain match - only for specific domains
+            if ".com" in variant_lower:  # Only match domains for .com variants
+                variant_domain = extract_domain(variant_lower)
+                if variant_domain and source_domain:
+                    # Strict domain matching
+                    if source_domain == variant_domain or source_domain.endswith("." + variant_domain):
+                        logging.info(f"Matched whitelisted domain: {source_domain} ({source_type})")
+                        return True
             
-            # Partial name match for specific cases
-            if (source_type == "bloomberg" and "bloomberg" in source_name) or \
-               (source_type == "reuters" and "reuters" in source_name) or \
-               (source_type == "cnbc" and "cnbc" in source_name) or \
-               (source_type == "wall street journal" and ("wsj" in source_name or "wall street journal" in source_name)):
-                logging.info(f"Matched whitelisted source pattern: {source_name} ({source_type})")
-                return True
+            # Strict partial name match for specific cases
+            if source_type in ["bloomberg", "reuters", "cnbc", "wall street journal"]:
+                if source_type == "bloomberg" and source_name.startswith("bloomberg"):
+                    logging.info(f"Matched Bloomberg source: {source_name}")
+                    return True
+                elif source_type == "reuters" and source_name.startswith("reuters"):
+                    logging.info(f"Matched Reuters source: {source_name}")
+                    return True
+                elif source_type == "cnbc" and source_name.startswith("cnbc"):
+                    logging.info(f"Matched CNBC source: {source_name}")
+                    return True
+                elif source_type == "wall street journal" and (source_name.startswith("wsj") or source_name.startswith("wall street journal")):
+                    logging.info(f"Matched Wall Street Journal source: {source_name}")
+                    return True
     
     logging.warning(f"Rejected non-whitelisted source: {source_name} ({source_url})")
     return False
