@@ -3,7 +3,7 @@ import aiohttp
 import os
 from dotenv import load_dotenv
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 
 load_dotenv()
@@ -102,10 +102,13 @@ async def get_news_articles(ticker: str, days: int = 30) -> List[Dict[str, Any]]
     if not NEWS_API_KEY:
         raise ValueError("NEWS_API_KEY environment variable is not set")
     
-    # Calculate date range
-    end_date = datetime.utcnow()
-    start_date = end_date - timedelta(days=days)
+    # Calculate date range with timezone awareness
+    end_date = datetime.now(timezone.utc)
+    start_date = (end_date - timedelta(days=days)).replace(tzinfo=timezone.utc)
     
+    logging.info(f"Date range: {start_date.isoformat()} to {end_date.isoformat()}")
+    
+    # Ensure dates are in UTC format for News API
     params = {
         "q": ticker,
         "apiKey": NEWS_API_KEY,
@@ -134,18 +137,29 @@ async def get_news_articles(ticker: str, days: int = 30) -> List[Dict[str, Any]]
                 logging.info(f"Processing {total_articles} articles for ticker {ticker}")
                 
                 for article in data["articles"]:
-                    published_at = datetime.fromisoformat(article["publishedAt"].replace("Z", "+00:00"))
-                    source = article["source"]
-                    logging.info(f"Checking source: {source.get('name', 'Unknown')} ({source.get('url', 'No URL')})")
-                    
-                    if start_date <= published_at <= end_date:
-                        if is_whitelisted_source(source):
-                            articles.append(article)
-                            logging.info(f"Added article from {source.get('name', 'Unknown')}")
+                    try:
+                        # Parse datetime with explicit UTC timezone
+                        published_at_str = article["publishedAt"].replace("Z", "+00:00")
+                        published_at = datetime.fromisoformat(published_at_str).replace(tzinfo=timezone.utc)
+                        source = article["source"]
+                        source_name = source.get('name', 'Unknown')
+                        source_url = source.get('url', 'No URL')
+                        
+                        logging.info(f"Processing article from {source_name} ({source_url})")
+                        logging.info(f"Published at: {published_at.isoformat()}")
+                        
+                        # All datetime objects are already timezone-aware, compare directly
+                        if start_date <= published_at <= end_date:
+                            if is_whitelisted_source(source):
+                                articles.append(article)
+                                logging.info(f"✓ Added article from whitelisted source: {source_name}")
+                            else:
+                                logging.warning(f"✗ Rejected article from non-whitelisted source: {source_name}")
                         else:
-                            logging.info(f"Skipped article from non-whitelisted source: {source.get('name', 'Unknown')}")
-                    else:
-                        logging.info(f"Skipped article due to date range: {published_at}")
+                            logging.info(f"✗ Skipped article outside date range: {published_at.isoformat()} (range: {start_date.isoformat()} to {end_date.isoformat()})")
+                    except Exception as e:
+                        logging.error(f"Error processing article: {str(e)}")
+                        continue
                 
                 # Sort by published date
                 articles.sort(key=lambda x: x["publishedAt"], reverse=True)

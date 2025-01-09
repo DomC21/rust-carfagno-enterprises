@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime
+from datetime import datetime, timezone
 from app.models import StockAnalysisRequest, StockAnalysisResponse, NewsArticle
 from app.services.news_service import get_news_articles, setup_logging
+import logging
 from app.services.analysis_service import analyze_articles
 from app.services.report_service import generate_report
 import os
@@ -16,7 +17,7 @@ app = FastAPI(title="Rust: A Tool by Carfagno Enterprises")
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint to verify API is running."""
-    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 # Configure CORS
 origins = [
@@ -80,14 +81,15 @@ async def analyze_stock(request: StockAnalysisRequest):
                 published_at_str = article.get("publishedAt")
                 
                 if not published_at_str:
-                    print(f"Warning: No publishedAt found for article {idx}")
-                    published_at = datetime.now()
+                    logging.warning(f"No publishedAt found for article {idx}")
+                    published_at = datetime.now(timezone.utc)
                 else:
                     try:
-                        published_at = datetime.strptime(published_at_str, "%Y-%m-%dT%H:%M:%SZ")
+                        # Parse datetime and ensure it's timezone-aware
+                        published_at = datetime.strptime(published_at_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
                     except ValueError as e:
-                        print(f"Warning: Invalid date format for article {idx}: {e}")
-                        published_at = datetime.now()
+                        logging.warning(f"Invalid date format for article {idx}: {e}")
+                        published_at = datetime.now(timezone.utc)
                 
                 articles.append(
                     NewsArticle(
