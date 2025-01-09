@@ -8,7 +8,13 @@ import logging
 
 load_dotenv()
 
-# Set up logging
+def setup_logging():
+    """Configure logging for the news service."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+
 setup_logging()
 
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
@@ -43,27 +49,34 @@ def is_whitelisted_source(source: Dict[str, Any]) -> bool:
     source_url = source.get("url", "").lower().strip()
     source_domain = extract_domain(source_url)
     
-    for whitelist_variants in WHITELISTED_SOURCES.values():
+    logging.info(f"Checking source: {source_name} (URL: {source_url}, Domain: {source_domain})")
+    
+    # First check for exact source name matches
+    for source_type, whitelist_variants in WHITELISTED_SOURCES.items():
         for variant in whitelist_variants:
             variant_lower = variant.lower().strip()
-            variant_domain = extract_domain(variant_lower)
             
-            # Exact match for source name or domain
-            if (source_name == variant_lower or
-                source_domain == variant_domain or
-                variant_domain == source_domain):
-                logging.info(f"Matched whitelisted source: {source.get('name')} ({source_url})")
+            # Exact name match
+            if source_name == variant_lower:
+                logging.info(f"Matched whitelisted source name: {source_name} ({source_type})")
+                return True
+            
+            # Domain match
+            variant_domain = extract_domain(variant_lower)
+            if variant_domain and (source_domain == variant_domain):
+                logging.info(f"Matched whitelisted domain: {source_domain} ({source_type})")
+                return True
+            
+            # Partial name match for specific cases
+            if (source_type == "bloomberg" and "bloomberg" in source_name) or \
+               (source_type == "reuters" and "reuters" in source_name) or \
+               (source_type == "cnbc" and "cnbc" in source_name) or \
+               (source_type == "wall street journal" and ("wsj" in source_name or "wall street journal" in source_name)):
+                logging.info(f"Matched whitelisted source pattern: {source_name} ({source_type})")
                 return True
     
-    logging.warning(f"Rejected non-whitelisted source: {source.get('name')} ({source_url})")
+    logging.warning(f"Rejected non-whitelisted source: {source_name} ({source_url})")
     return False
-
-def setup_logging():
-    """Configure logging for the news service."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
 
 async def get_news_articles(ticker: str, days: int = 30) -> List[Dict[str, Any]]:
     """
