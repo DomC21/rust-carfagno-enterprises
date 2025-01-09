@@ -2,16 +2,22 @@ services:
   - type: web
     name: rust-carfagno-enterprises
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: |
+      pip install -r requirements.txt
+      python -c "import sys; print('Python path:', sys.path)"
+    startCommand: |
+      export PYTHONPATH=/opt/render/project/src:$PYTHONPATH
+      uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: NEWS_API_KEY
+        sync: false
       - key: OPENAI_API_KEY
+        sync: false
       - key: PORT
         value: 8080
       - key: CORS_ORIGINS
         value: https://stock-news-app-miq8bqnu.devinapps.com
       - key: PYTHONPATH
-        value: .
+        value: /opt/render/project/src
     healthCheckPath: /api/health
     autoDeploy: true
