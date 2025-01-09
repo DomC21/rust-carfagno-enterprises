@@ -2,13 +2,14 @@ from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from app.models import StockAnalysisRequest, StockAnalysisResponse, NewsArticle
-from app.services.news_service import get_news_articles
+from app.services.news_service import get_news_articles, setup_logging
 from app.services.analysis_service import analyze_articles
 from app.services.report_service import generate_report
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
+setup_logging()
 
 app = FastAPI(title="Rust: A Tool by Carfagno Enterprises")
 
