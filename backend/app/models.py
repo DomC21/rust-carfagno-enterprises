@@ -13,6 +13,20 @@ class StockAnalysisRequest(BaseModel):
             return v
         if isinstance(v, datetime):
             return v.replace(tzinfo=timezone.utc) if v.tzinfo is None else v
+        if isinstance(v, str):
+            try:
+                # Handle both 'Z' and ISO 8601 formats
+                if v.endswith('Z'):
+                    v = v[:-1] + '+00:00'
+                dt = datetime.fromisoformat(v)
+                return dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else dt
+            except ValueError:
+                try:
+                    # Try alternative parsing method
+                    dt = datetime.strptime(v, "%Y-%m-%dT%H:%M:%SZ")
+                    return dt.replace(tzinfo=timezone.utc)
+                except ValueError:
+                    raise ValueError(f"Invalid datetime format: {v}")
         return v
 
 class NewsArticle(BaseModel):
