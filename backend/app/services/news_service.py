@@ -143,24 +143,42 @@ async def get_news_articles(ticker: str, days: int = 30) -> List[Dict[str, Any]]
                 for article in data["articles"]:
                     try:
                         # Parse datetime with explicit UTC timezone
-                        published_at_str = article["publishedAt"].replace("Z", "+00:00")
-                        published_at = datetime.fromisoformat(published_at_str).replace(tzinfo=timezone.utc)
-                        source = article["source"]
+                        published_at_str = article.get("publishedAt", "")
+                        if not published_at_str:
+                            logging.warning("Article missing publishedAt field")
+                            continue
+                            
+                        # Handle both 'Z' and ISO 8601 formats
+                        if published_at_str.endswith('Z'):
+                            published_at_str = published_at_str[:-1] + '+00:00'
+                        try:
+                            published_at = datetime.fromisoformat(published_at_str).replace(tzinfo=timezone.utc)
+                        except ValueError as e:
+                            logging.error(f"Failed to parse date: {published_at_str} - {str(e)}")
+                            continue
+                            
+                        source = article.get("source", {})
                         source_name = source.get('name', 'Unknown')
                         source_url = source.get('url', 'No URL')
                         
                         logging.info(f"Processing article from {source_name} ({source_url})")
                         logging.info(f"Published at: {published_at.isoformat()}")
                         
-                        # All datetime objects are already timezone-aware, compare directly
-                        if start_date <= published_at <= end_date:
+                        # Ensure all datetime objects are timezone-aware for comparison
+                        article_date = published_at.replace(tzinfo=timezone.utc)
+                        start = start_date.replace(tzinfo=timezone.utc)
+                        end = end_date.replace(tzinfo=timezone.utc)
+                        
+                        logging.info(f"Comparing dates: Article={article_date.isoformat()}, Start={start.isoformat()}, End={end.isoformat()}")
+                        
+                        if start <= article_date <= end:
                             if is_whitelisted_source(source):
                                 articles.append(article)
                                 logging.info(f"✓ Added article from whitelisted source: {source_name}")
                             else:
                                 logging.warning(f"✗ Rejected article from non-whitelisted source: {source_name}")
                         else:
-                            logging.info(f"✗ Skipped article outside date range: {published_at.isoformat()} (range: {start_date.isoformat()} to {end_date.isoformat()})")
+                            logging.info(f"✗ Skipped article outside date range: {article_date.isoformat()} (range: {start.isoformat()} to {end.isoformat()})")
                     except Exception as e:
                         logging.error(f"Error processing article: {str(e)}")
                         continue

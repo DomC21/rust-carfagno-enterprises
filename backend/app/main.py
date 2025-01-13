@@ -1,9 +1,9 @@
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timezone
+import logging
 from app.models import StockAnalysisRequest, StockAnalysisResponse, NewsArticle
 from app.services.news_service import get_news_articles, setup_logging
-import logging
 from app.services.analysis_service import analyze_articles
 from app.services.report_service import generate_report
 import os
@@ -49,13 +49,19 @@ async def check_env():
 @app.post("/api/analyze", response_model=StockAnalysisResponse)
 async def analyze_stock(request: StockAnalysisRequest):
     try:
+        # Ensure request dates are timezone-aware
+        if request.start_date and request.start_date.tzinfo is None:
+            request.start_date = request.start_date.replace(tzinfo=timezone.utc)
+        if request.end_date and request.end_date.tzinfo is None:
+            request.end_date = request.end_date.replace(tzinfo=timezone.utc)
+            
         # Fetch news articles
         raw_articles = await get_news_articles(request.ticker)
         
         # Debug logging
-        print(f"Raw articles received: {len(raw_articles) if raw_articles else 0}")
+        logging.info(f"Raw articles received: {len(raw_articles) if raw_articles else 0}")
         if raw_articles and len(raw_articles) > 0:
-            print(f"First article structure: {raw_articles[0]}")
+            logging.info(f"First article structure: {raw_articles[0]}")
         
         if not raw_articles:
             raise HTTPException(status_code=404, detail="No news articles found for the given ticker")
@@ -78,18 +84,25 @@ async def analyze_stock(request: StockAnalysisRequest):
                 description = article.get("description", "No description available")
                 source_name = article.get("source", {}).get("name", "Unknown Source")
                 url = article.get("url", "")
-                published_at_str = article.get("publishedAt")
+                published_at_str = article.get("publishedAt", "")
                 
                 if not published_at_str:
                     logging.warning(f"No publishedAt found for article {idx}")
                     published_at = datetime.now(timezone.utc)
                 else:
                     try:
-                        # Parse datetime and ensure it's timezone-aware
-                        published_at = datetime.strptime(published_at_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                        # Handle both 'Z' and ISO 8601 formats
+                        if published_at_str.endswith('Z'):
+                            published_at_str = published_at_str[:-1] + '+00:00'
+                        published_at = datetime.fromisoformat(published_at_str).replace(tzinfo=timezone.utc)
                     except ValueError as e:
                         logging.warning(f"Invalid date format for article {idx}: {e}")
-                        published_at = datetime.now(timezone.utc)
+                        # Try alternative parsing method
+                        try:
+                            published_at = datetime.strptime(published_at_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                        except ValueError:
+                            logging.error(f"Failed to parse date with both methods: {published_at_str}")
+                            published_at = datetime.now(timezone.utc)
                 
                 articles.append(
                     NewsArticle(
